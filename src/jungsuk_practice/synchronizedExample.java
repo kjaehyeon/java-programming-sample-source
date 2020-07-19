@@ -1,3 +1,4 @@
+package jungsuk_practice;
 
 public class synchronizedExample {
     public static void main(String[] args) {
