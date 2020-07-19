@@ -1,3 +1,4 @@
+package jungsuk_practice;
 
 public class garbageCollector {
     public static void main(String[] args) {
