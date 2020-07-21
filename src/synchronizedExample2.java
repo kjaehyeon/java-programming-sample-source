@@ -1,14 +1,20 @@
 import java.util.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
+//Conditon을 Cust가 원하는 음식의 종류로 더 세분화 하면 개선될 수 있다.
 public class synchronizedExample2 {
     public static void main(String[] args) {
         Table table = new Table();
 
         new Thread(new cook(table),"COOK1").start();
+        new Thread(new cook(table),"COOK2").start();
         new Thread(new customer(table,"dount"),"CUST1").start();
         new Thread(new customer(table,"buger"),"CUST2").start();
+        new Thread(new customer(table,"pizza"),"CUST3").start();
+        new Thread(new customer(table,"donut"),"CUST4").start();
 
-        try{Thread.sleep(5000);}catch (InterruptedException e){}
+        try{Thread.sleep(3000);}catch (InterruptedException e){}
         System.exit(0);
 
     }
@@ -52,47 +58,63 @@ class cook implements Runnable{
     }
 }
 class Table{
-    String[] dishNames = {"dount", "dount", "buger"};
+    String[] dishNames = {"dount","donut", "pizza", "buger",};
     final int MAX_FOOD = 6;
-
     ArrayList<String> dishes = new ArrayList<>();
-    public synchronized void add(String dish){
-        String name = Thread.currentThread().getName();
-        while(dishes.size() >= MAX_FOOD){
-            System.out.println(name+" is waiting... ");
-            try{
-                wait();
-                Thread.sleep(500);
-            }catch (InterruptedException e){}
-        }
-        dishes.add(dish);
-        notify(); // 기다리는 CUST 깨우기
-        System.out.println("Dishes : " + dishes.toString());
-    }
-    public void remove(String dish){
-        synchronized (this){
-            String name = Thread.currentThread().getName();
-            while(dishes.size() == 0){
-                System.out.println(name+" is waiting...");
-                try{
-                    wait();//CUST 기다리게 한다.
+
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition forCook = lock.newCondition();
+    private Condition forCust = lock.newCondition();
+
+    //public synchronized void add(String dish){
+    public void add(String dish){
+        lock.lock();
+        try {
+            while (dishes.size() >= MAX_FOOD) {
+                String name = Thread.currentThread().getName();
+                System.out.println(name + " is waiting... ");
+                try {
+                    forCook.await();//cook 대기
                     Thread.sleep(500);
-                }catch (InterruptedException e){}
+                } catch (InterruptedException e) {}
+            }
+            dishes.add(dish);
+            forCust.signal(); // 기다리는 CUST 깨우기
+            System.out.println("Dishes : " + dishes.toString());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    public void remove(String dish){
+        lock.lock();//synchronized (this){
+        try {
+            String name = Thread.currentThread().getName();
+            while (dishes.size() == 0) {
+                System.out.println(name + " is waiting...");
+                try {
+                    forCust.await();//CUST 기다리게 한다.
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
             }
 
-            while(true){
-                if(dishes.remove(dish)){
-                    notify();// cook 깨우기
+            while (true) {
+                if (dishes.remove(dish)) {
+                    forCook.signal();// cook 깨우기
                     return;
                 }
-                try{
+                try {
                     System.out.println(name + " is waiting...");
-                    wait(); //원하는 음식 없는 CUST 기다리게
+                    forCust.await(); //원하는 음식 없는 CUST 기다리게
                     Thread.sleep(500);
-                }catch (InterruptedException e){}
+                } catch (InterruptedException e) {
+                }
             }//while(true)
-        }//synchronized
-
+            //}//synchronized
+        }finally {
+            lock.unlock();
+        }
     }
     public int dishNum(){return dishNames.length;}
 }
