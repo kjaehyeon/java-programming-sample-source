@@ -1,4 +1,4 @@
-package Filediv_and_FileCom;
+package jungsuk_practice.Filediv_and_FileCom;
 
 import java.io.*;
 

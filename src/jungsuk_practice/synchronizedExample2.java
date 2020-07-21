@@ -1,3 +1,5 @@
+package jungsuk_practice;
+
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,7 +76,7 @@ class Table{
                 String name = Thread.currentThread().getName();
                 System.out.println(name + " is waiting... ");
                 try {
-                    forCook.await();//cook 대기
+                    forCook.await();//jungsuk_practice.cook 대기
                     Thread.sleep(500);
                 } catch (InterruptedException e) {}
             }
@@ -101,7 +103,7 @@ class Table{
 
             while (true) {
                 if (dishes.remove(dish)) {
-                    forCook.signal();// cook 깨우기
+                    forCook.signal();// jungsuk_practice.cook 깨우기
                     return;
                 }
                 try {

@@ -1,4 +1,4 @@
-import com.sun.jmx.snmp.SnmpInt;
+package jungsuk_practice;
 
 import java.math.BigInteger;
 import java.util.*;
