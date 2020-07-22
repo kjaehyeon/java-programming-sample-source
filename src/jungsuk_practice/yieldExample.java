@@ -39,7 +39,7 @@ class threadex1 implements Runnable {
            if(!suspended){
                System.out.println(Thread.currentThread().getName());
                try{
-                   Thread.sleep(1000);
+                   Thread.sleep(500);
                }catch (InterruptedException e){}
            }else
                Thread.yield();

@@ -1,5 +1,4 @@
-import org.omg.PortableInterceptor.ServerRequestInfo;
-import java.io.*;
+package jungsuk_practice;
 
 public class try_with_resource {
     public static void main(String[] args) {
